@@ -1,0 +1,25 @@
+body {
+    text-align: center;
+}
+
+div {
+    text-align: left;
+    border: 1px solid black;
+    display: inline-block;
+}
+
+.description {
+    display: block;
+}
+
+.thumbnailsBlock {
+    padding: 50% auto;
+}
+
+.thumbnails {
+	max-width: 100px;
+}
+
+.delete {
+	float:right;
+}

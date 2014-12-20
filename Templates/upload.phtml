@@ -1,0 +1,41 @@
+<?php
+spl_autoload_register(function ($className) {
+    if(file_exists('Classes/' . $className . '.php')) {
+        require_once __DIR__ . '/Classes/' . $className . '.php';
+
+        return true;
+    } else {
+        return false;
+    }
+});
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload</title>
+    <link rel='stylesheet' type='text/css' href='css/stylesheet.css'>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+    <div class="wrapper">
+        <img src="/../uploads/<?=$fileName?>">
+
+        <div class="description">
+        <?php foreach ($errors as $key => $value) : ?>
+            Error: <span style="color: red;"><?=$value?></span><br>
+        <?php endforeach; ?>
+            Name: <?=$fileName?> <br>
+            Size: <?=round($fileSize, 2)?> kb <br>
+            thumbnailWidth: <?=$thumbnailWidth?> <br>
+            thumbnailHeight: <?=$thumbnailHeight?> <br>
+            <label>Img link: <input type="text" value="localhost/uploads/<?=$fileName?>" onclick="this.select()"></label><br>
+            <label>Thumbnail link: <input type="text" value="localhost/thumbnails/<?=$fileName?>" onclick="this.select()"></label>
+            <?php if($thumbnailWidth != '' xor $thumbnailHeight != '') :?>
+                Thumbnail: <br>
+                <img src="<?=Thumbnail::createThumbnail($fileName, $thumbnailWidth, $thumbnailHeight, false)?>"> <br>
+            <?php endif;?>
+        </div>
+    </div>
+</body>
+</html>
