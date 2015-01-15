@@ -1,29 +1,20 @@
+﻿<?php
+require_once '../autoload.php'
+?>
+
 <?php
-spl_autoload_register(function ($className) {
-    if(file_exists('Classes/' . $className . '.php')) {
-        require_once __DIR__ . '/Classes/' . $className . '.php';
-
-        return true;
-    } else {
-        return false;
-    }
-});
-
 class Upload {
-    public function extension($files, $extension, $extensions) {
-        if (
-            (
-                ($files["file"]["type"] == "image/jpeg")
-                || ($files["file"]["type"] == "image/jpg")
-                || ($files["file"]["type"] == "image/pjpeg")
-                || ($files["file"]["type"] == "image/x-png")
-                || ($files["file"]["type"] == "image/png")
-            )
-            && ($files["file"]["size"] < 20000000)
-            && in_array($extension, $extensions)
-        ) {
-            return true;
+    public function getExtension($name) {
+        $extensions = array("jpeg", "jpg", "png");
+
+        $explode = explode(".", $name);
+        $extension = end($explode);
+
+        if (!in_array($extension, $extensions)) {
+            return false;
         } 
+
+        return $extension;
     }
 
     public function generateHash($file) {
@@ -36,40 +27,40 @@ class Upload {
         if (file_exists("uploads/" . $name)) {
             $errors['nameExists'] = $name . " already exists. ";
 
-            //return false;
-        } else {
-            $originalname = $name;
-            $name = Database::newName($originalname);
-            move_uploaded_file($temp, "uploads/" . $name);
+            return false;
+        }
+        
+        $database = new Database;
 
-            $hash = self::generateHash("uploads/" . $name);
+        $originalname = $name;
+        $name = $database->newName($originalname);
 
-            if (!Database::validateImageHash($hash)) {
-                if (!Database::addImage($originalname, $name, $hash, $extension)) {
-                    $errors['database'] = "Some database error";
+        move_uploaded_file($temp, "uploads/" . $name);
 
-                    unlink("uploads/" . $name);
+        $hash = self::generateHash("uploads/" . $name);
 
-                    return false;
-                }
-            } else {
-                unlink("uploads/" . $name);
-                $errors['fileExist'] = 'Image already exists here: uploads/' . $image['name'];        
-            }
+        if ($database->validateImageHash($hash)) {
+            unlink("uploads/" . $name);
+            $errors['fileExist'] = 'Image already exists here: uploads/' . $image['name'];
+
+            return false;        
+        }
+
+        if (!$database->addImage($originalname, $name, $hash, $extension)) {
+            $errors['database'] = "Some database error";
+
+            unlink("uploads/" . $name);
+
+            return false;
         }
 
         if (($width != '' xor $height != '') or ($width != '' and $height != '')) {
-            Thumbnail::createThumbnail($name, $width, $height, false);
+            $thumbnail = new Thumbnail;
+
+            $thumbnail->createThumbnail($name, $width, $height, false);
         }
 
         return true;
-    }
-
-    public function test($name) {
-        $newName = Database::newName($name);
-
-        echo $name . "<br>";
-        echo $newName . "<br>";
     }
 }
 ?>

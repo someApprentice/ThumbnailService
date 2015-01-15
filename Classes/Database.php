@@ -1,14 +1,8 @@
+﻿<?php
+require_once '../autoload.php'
+?>
+
 <?php
-spl_autoload_register(function ($className) {
-    if(file_exists('Classes/' . $className . '.php')) {
-        require_once __DIR__ . '/Classes/' . $className . '.php';
-
-        return true;
-    } else {
-        return false;
-    }
-});
-
 class Database {
 	public function newName($originalname) {
 		$originalname = explode('.', $originalname);
@@ -21,14 +15,14 @@ class Database {
 		$ru = "А а Б б В в Г г Д д Е е Ё ё Ж ж З з И и Й й К к Л л М м Н н О о П п Р р С с Т т У у Ф ф Х х Ц ц Ч ч Ш ш Щ щ Ъ ъ Ы ы Ь ь Э э Ю ю Я я";
 		$ruExplode = explode(' ' , $ru);
 		foreach ($ruExplode as &$value) {
-			$value = '/' . $value . '/';
+			$value = '/' . $value . '/u';
 		}
 
 		$eng = "A a B b V v G g D d E e Yo yo Zh zh Z z I i Y y K k L l M m N n O o P p R r S s T t U u F f H h Ts ts Ch ch Sh sh Shch shch '' '' I i '' '' E e YU yu Ya ya";
 		$engExplode = explode(' ', $eng);
 
 		$originalname = preg_replace($ruExplode, $engExplode, $originalname);
-		$originalname = preg_replace('/[^\\w-]/', '_', $originalname);
+		$originalname = preg_replace('/[^\\w-]/u', '_', $originalname);
 		$originalname = "{$originalname}.{$extension}";
 
 		return $originalname;

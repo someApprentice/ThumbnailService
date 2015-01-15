@@ -1,14 +1,8 @@
 <?php
-spl_autoload_register(function ($className) {
-    if(file_exists('Classes/' . $className . '.php')) {
-        require_once __DIR__ . '/Classes/' . $className . '.php';
+require_once '../autoload.php'
+?>
 
-        return true;
-    } else {
-        return false;
-    }
-});
-
+<?php
 class Delete {
 	public function deleteImageFromDrive($image) {
 		if (file_exists("uploads/" . $image)) { 

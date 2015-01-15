@@ -1,27 +1,21 @@
 <?php
-spl_autoload_register(function ($className) {
-    if(file_exists('Classes/' . $className . '.php')) {
-        require_once __DIR__ . '/Classes/' . $className . '.php';
+require_once 'autoload.php'
+?>
 
-        return true;
-    } else {
-        return false;
-    }
-});
+<?php
+$database = new Database;
+$delete = new Delete;
 
-$image = Database::getImageFromUrl();
+$image = $database->getImageFromUrl();
 
-if (isset($image)) {
-	if (Delete::deleteImageFromDrive($image['name'])) {
-		Database::deleteImageFromDatabase($image['originalname']);
+if (!isset($image)) exit;
 
-		if (Delete::deleteThumbnailsFromDrive($image['name'])) {
-			Database::deleteThumbnailsFromDatabase($image['originalname']);
-		}
+if (!$delete->deleteImageFromDrive($image['name'])) exit;
+$database->deleteImageFromDrive($image['originalname']);
 
-		
-	}
-}
+if(!$delte->deleteThumbnailsFromDrive($image['name'])) exit;
+$database->deleteThumbnailsFromDatabase($image['originalname']);
+
 
 header("Location: index.php");
 ?>
