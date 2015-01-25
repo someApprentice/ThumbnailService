@@ -1,14 +1,35 @@
 ﻿<?php
-require_once '../autoload.php'
+require_once '/../autoload.php';
 ?>
 
 <?php
 class Upload {
+    public function createDirectory($fileName) {
+        $crc32 = abs(crc32($fileName));
+        $directory = round($crc32 / pow(20, 6));
+
+        $path = (preg_match('/thumbnail(\\w+)/', $fileName)) ? 'thumbnails' : 'uploads';
+        $path = $path . '/' . $directory . '/';
+
+        if (!file_exists($path)) mkdir($path);        
+
+        return $directory; 
+    }
+
+    public function validateImage($name) {
+        $image = getimagesize("uploads/" . $name);
+        $extensions = array("image/jpeg", "image/png");
+
+        if (!in_array($image['mime'], $extensions)) return false;
+
+        return $image['mime'];
+    }
+
     public function getExtension($name) {
         $extensions = array("jpeg", "jpg", "png");
 
         $explode = explode(".", $name);
-        $extension = end($explode);
+        $extension = mb_strtolower(end($explode));
 
         if (!in_array($extension, $extensions)) {
             return false;
@@ -23,11 +44,17 @@ class Upload {
         return $hash;
     }
 
-    public function uploadFile($name, $temp, $extension, $width, $height, &$errors = array()) {
+    public function uploadFile($name, $temp, $extension, $width, $height, $crop, &$errors = array()) {
         if (file_exists("uploads/" . $name)) {
             $errors['nameExists'] = $name . " already exists. ";
 
-            return false;
+            if (($width != '' xor $height != '') or ($width != '' and $height != '')) {
+                $thumbnail = new Thumbnail;
+
+                $thumbnail->createThumbnail($name, $width, $height, $crop);
+            }
+
+            return true;
         }
         
         $database = new Database;
@@ -35,21 +62,30 @@ class Upload {
         $originalname = $name;
         $name = $database->newName($originalname);
 
-        move_uploaded_file($temp, "uploads/" . $name);
+        $directory = self::createDirectory($name);
+        move_uploaded_file($temp, "uploads/" . $directory . '/' . $name);
 
-        $hash = self::generateHash("uploads/" . $name);
+        $hash = self::generateHash("uploads/" . $directory . '/' . $name);
 
         if ($database->validateImageHash($hash)) {
             unlink("uploads/" . $name);
-            $errors['fileExist'] = 'Image already exists here: uploads/' . $image['name'];
+            $errors['fileExist'] = 'Image already exists here: uploads/' . $directory . '/' . $image['name'];
 
             return false;        
         }
 
-        if (!$database->addImage($originalname, $name, $hash, $extension)) {
-            $errors['database'] = "Some database error";
+        /*if (!self::validateImage("uploads/" . $name)) {
+            $erorrs['image'] = "Incorrect image";
 
             unlink("uploads/" . $name);
+
+            return false;
+        }*/
+
+        if (!$database->addImage($originalname, $name, $hash, $extension, $directory)) {
+            $errors['database'] = "Some database error";
+
+            unlink("uploads/" . $directory . '/' . $name);
 
             return false;
         }
@@ -57,7 +93,7 @@ class Upload {
         if (($width != '' xor $height != '') or ($width != '' and $height != '')) {
             $thumbnail = new Thumbnail;
 
-            $thumbnail->createThumbnail($name, $width, $height, false);
+            $thumbnail->createThumbnail($name, $width, $height, $crop);
         }
 
         return true;

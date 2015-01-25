@@ -11,9 +11,9 @@ $image = $database->getImageFromUrl();
 if (!isset($image)) exit;
 
 if (!$delete->deleteImageFromDrive($image['name'])) exit;
-$database->deleteImageFromDrive($image['originalname']);
+$database->deleteImageFromDatabase($image['originalname']);
 
-if(!$delte->deleteThumbnailsFromDrive($image['name'])) exit;
+if(!$delete->deleteThumbnailsFromDrive($image['name'])) exit;
 $database->deleteThumbnailsFromDatabase($image['originalname']);
 
 

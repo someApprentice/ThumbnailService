@@ -3,7 +3,6 @@ require_once 'autoload.php'
 ?>
 
 <?php
-
 $fileName = '';
 $fileType = '';
 $fileSize = '';
@@ -20,16 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $thumbnailWidth = isset($_POST['width']) && is_scalar($_POST['width']) ? $_POST['width'] : '';
     $thumbnailHeight = isset($_POST['height']) && is_scalar($_POST['height']) ? $_POST['height'] : '';
 
+    $crop = isset($_POST['Crop']) && $_POST['Crop'] == 'Crop' ? true : false;
+
     $form = new Form;
     $errors = $form->validateForm($fileName, $fileType, $fileTemp);
 
     if($errors) exit;
 
     $upload = new Upload;
-
-    $extension = $upload->getExtension;.
     
-    if (!$upload->validateExtension($_FILES, $extension)) {
+    if (!$extension = $upload->getExtension($fileName)) {
         $errors['extension'] = "Incorrect extension";
 
         exit;
@@ -41,15 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     } 
 
-    $upload->uploadFile($fileName, $fileTemp, $extension, $thumbnailWidth, $thumbnailHeight, $errors);
+    $upload->uploadFile($fileName, $fileTemp, $extension, $thumbnailWidth, $thumbnailHeight, $crop, $errors);
 
-    $fileName = Database::newName($fileName);
+    $database = new Database;
+    $fileName = $database->newName($fileName);
 
-    header("Location: image.php?name=" . $fileName);    
+    header("Location: image.php?name=" . urlencode($fileName));    
 } else {
     header("Location: index.php");
 }
-
-
-
 ?>

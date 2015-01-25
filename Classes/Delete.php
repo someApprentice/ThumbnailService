@@ -1,12 +1,15 @@
 <?php
-require_once '../autoload.php'
+require_once '/../autoload.php'
 ?>
 
 <?php
 class Delete {
 	public function deleteImageFromDrive($image) {
-		if (file_exists("uploads/" . $image)) { 
-			unlink("uploads/" . $image);
+        $crc32 = abs(crc32($image));
+        $directory = round($crc32 / pow(20, 6));
+
+		if (file_exists("uploads/" . $directory . '/' . $image)) { 
+			unlink("uploads/" . $directory . '/' . $image);
 		} else {
 			return false;
 		}
@@ -17,8 +20,11 @@ class Delete {
 	public function deleteThumbnailsFromDrive($originalname) {
 		if ($thumbnails = Database::getThumbnailsByImage($originalname)) {
 			foreach ($thumbnails as $key => $value) {
-				if (file_exists("thumbnails/" . $value['name'])) {
-					unlink("thumbnails/" . $value['name']);
+				$crc32 = abs(crc32($value['name']));
+	        	$directory = round($crc32 / pow(20, 6));
+
+				if (file_exists("thumbnails/" . $directory . '/' . $value['name'])) {
+					unlink("thumbnails/" . $directory . '/' . $value['name']);
 				} else {
 					return false;
 				}
@@ -26,16 +32,6 @@ class Delete {
 		}
 
 		return true;
-	}
-
-	public function deleteTest() {
-		$way = "uploads/" . "tumblr_mtfyqiOmNg1qetnlco1_500.jpg";
-		
-		if (file_exists($way)) {
-			if(unlink($way)) {
-				echo "unlink";
-			}
-		}
 	}
 }
 ?>

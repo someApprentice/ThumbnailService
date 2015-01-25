@@ -1,5 +1,5 @@
 ﻿<?php
-require_once '../autoload.php'
+require_once '/../autoload.php'
 ?>
 
 <?php
@@ -97,30 +97,32 @@ class Database {
 	    return $result;
 	}
 
-	public function addImage($originalName, $name, $hash, $type) {
+	public function addImage($originalName, $name, $hash, $type, $directory) {
 		$connect = Connect::getPdo();
 
-		$insert = $connect->prepare("INSERT INTO images (id, originalname, name, hash, type) VALUES (NULL, :originalname, :name, :hash, :type)");
+		$insert = $connect->prepare("INSERT INTO images (id, originalname, name, hash, type, directory) VALUES (NULL, :originalname, :name, :hash, :type, :directory)");
 		$insert->execute(array(
 			':originalname' => $originalName,
 			':name' => $name,
 			':hash' => $hash,
-			':type' => $type
+			':type' => $type,
+			':directory' => $directory
 			));
 
 		return $insert;
 	}
 
-	public function addThumbnail($originalName, $name, $hash, $width, $height) {
+	public function addThumbnail($originalName, $name, $hash, $width, $height, $directory) {
 		$connect = Connect::getPdo();
 
-		$insert = $connect->prepare("INSERT INTO thumbnails (id, originalName, name, hash, width, height) VALUES (NULL, :originalName, :name, :hash, :width, :height)");
+		$insert = $connect->prepare("INSERT INTO thumbnails (id, originalName, name, hash, width, height, directory) VALUES (NULL, :originalName, :name, :hash, :width, :height, :directory)");
 		$insert->execute(array(
 			':originalName' => $originalName,
 			':name' => $name,
 			':hash' => $hash,
 			':width' => $width,
-			':height' => $height
+			':height' => $height,
+			':directory' => $directory
 			));
 
 		return $insert;
