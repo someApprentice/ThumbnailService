@@ -4,30 +4,6 @@ require_once '/../autoload.php'
 
 <?php
 class Database {
-	public function newName($originalname) {
-		$originalname = explode('.', $originalname);
-		$extension = array(end($originalname));
-		$originalname = array_diff($originalname, $extension);
-		$extension = implode($extension);
-		$originalname = implode('.', $originalname);
-
-			
-		$ru = "А а Б б В в Г г Д д Е е Ё ё Ж ж З з И и Й й К к Л л М м Н н О о П п Р р С с Т т У у Ф ф Х х Ц ц Ч ч Ш ш Щ щ Ъ ъ Ы ы Ь ь Э э Ю ю Я я";
-		$ruExplode = explode(' ' , $ru);
-		foreach ($ruExplode as &$value) {
-			$value = '/' . $value . '/u';
-		}
-
-		$eng = "A a B b V v G g D d E e Yo yo Zh zh Z z I i Y y K k L l M m N n O o P p R r S s T t U u F f H h Ts ts Ch ch Sh sh Shch shch '' '' I i '' '' E e YU yu Ya ya";
-		$engExplode = explode(' ', $eng);
-
-		$originalname = preg_replace($ruExplode, $engExplode, $originalname);
-		$originalname = preg_replace('/[^\\w-]/u', '_', $originalname);
-		$originalname = "{$originalname}.{$extension}";
-
-		return $originalname;
-	}
-
 	public function deleteThumbnailsFromDatabase($originalName) {
 	    $connect = Connect::getPdo();
 

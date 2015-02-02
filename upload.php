@@ -26,13 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if($errors) exit;
 
-    $upload = new Upload;
-    
-    if (!$extension = $upload->getExtension($fileName)) {
-        $errors['extension'] = "Incorrect extension";
-
-        exit;
-    }
 
     if ($_FILES["file"]["error"] > 0) {
         $errors["error"] = $_FILES["file"]["error"];
@@ -40,10 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     } 
 
-    $upload->uploadFile($fileName, $fileTemp, $extension, $thumbnailWidth, $thumbnailHeight, $crop, $errors);
+    ImageManager::uploadFile($fileName, $fileTemp);
 
-    $database = new Database;
-    $fileName = $database->newName($fileName);
+    if (($thumbnailWidth != '' xor $thumbnailHeight != '') or ($thumbnailWidth != '' and $thumbnailHeight != '')) {
+        ImageManager::createThumbnail($fileName, $thumbnailWidth, $thumbnailHeight, $crop);
+    }
+
 
     header("Location: image.php?name=" . urlencode($fileName));    
 } else {

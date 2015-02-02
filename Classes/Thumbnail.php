@@ -1,68 +1,80 @@
 <?php
 class Thumbnail {
-    public function createThumbnail($name, $maxWidth, $maxHeight, $crop) {
-        $directory = Upload::createDirectory($name);
-        list($width, $height) = getimagesize(__DIR__ . '/../uploads/' . $directory . '/' . $name);
+    public $name;
 
-        $x = 0;
-        $y = 0;
+    public $crop = false;
 
-        $cropX = 0;
-        $cropY = 0;
+    public $width;
+    public $height;
+    
+    public $maxWidth;
+    public $maxHeight;
 
-        if ($maxWidth == '' || $maxWidth > $width) $maxWidth = $width;
-        if ($maxHeight == '' || $maxHeight > $height) $maxHeight = $height;
+    public $x = 0;
+    public $y = 0;
 
-        if ($crop) {
-            $cropRatioX = $maxWidth / $width;
-            $cropRatioY = $maxHeight / $height;
+    public $cropX = 0;
+    public $cropY = 0;
+
+    public $newWidth;
+    public $newHeight;
+
+    public $newWidth_p;
+    public $newHeight_p;
+
+    public function __construct($name, $maxWidth, $maxHeight, $crop) {
+        $this->name = $name;
+        $this->maxWidth = $maxWidth;
+        $this->maxHeight = $maxHeight;
+        $this->crop = $crop;
+    }
+
+    public function calculateProperty($directory) {
+        list($this->width, $this->height) = getimagesize(__DIR__ . '/../uploads/' . $directory . '/' . $this->name);
+
+        if ($this->maxWidth == '' || $this->maxWidth > $this->width) $this->maxWidth = $this->width;
+        if ($this->maxHeight == '' || $this->maxHeight > $this->height) $this->maxHeight = $this->height;
+
+        if ($this->crop) {
+            $cropRatioX = $this->maxWidth / $this->width;
+            $cropRatioY = $this->maxHeight / $this->height;
             $cropRatio = max(array($cropRatioX, $cropRatioY));
 
-            $newWidth = round($width * $cropRatio);
-            $newHeight = round($height * $cropRatio);
+            $this->newWidth = round($this->width * $cropRatio);
+            $this->newHeight = round($this->height * $cropRatio);
 
-            $cropX = ($newWidth > $newHeight) ? ($newWidth - $maxWidth) / 2 : 0;
-            $cropY = ($newHeight > $newWidth) ? ($newWidth - $maxWidth) / 2 : 0;
+            $this->cropX = ($this->newWidth > $this->newHeight) ? ($this->newWidth - $this->maxWidth) / 2 : 0;
+            $this->cropY = ($this->newHeight > $this->newWidth) ? ($this->newWidth - $this->maxWidth) / 2 : 0;
 
-            $x = ($maxWidth > $maxHeight) ? ($cropX / 2) * (-1) : 0;
-            $y = ($maxHeight > $maxWidth) ? ($cropY / 2) * (-1) : 0;
+            $this->x = ($this->maxWidth > $this->maxHeight) ? ($this->cropX / 2) * (-1) : 0;
+            $this->y = ($this->maxHeight > $this->maxWidth) ? ($this->cropY / 2) * (-1) : 0;
 
-            $newWidth_p = $maxWidth;
-            $newHeight_p = $maxHeight;          
+            $this->newWidth_p = $this->maxWidth;
+            $this->newHeight_p = $this->maxHeight;          
         } else {
-            $ratioY = $maxWidth / $width;
-            $ratioX = $maxHeight / $height;
+            $ratioY = $this->maxWidth / $this->width;
+            $ratioX = $this->maxHeight / $this->height;
             $ratio = min(array($ratioX, $ratioY));
 
-            $newWidth = round($width * $ratio);
-            $newHeight = round($height * $ratio); 
+            $this->newWidth = round($this->width * $ratio);
+            $this->newHeight = round($this->height * $ratio); 
 
-            $newWidth_p = $newWidth;
-            $newHeight_p = $newHeight;              
-        }   
-        
-        if (Database::getThumbnailBySize($name, $newWidth_p, $newHeight_p)) {
-            return false;
+            $this->newWidth_p = $this->newWidth;
+            $this->newHeight_p = $this->newHeight;              
         }
 
-        $image_p = imagecreatetruecolor($newWidth_p, $newHeight_p);
-        $image = imagecreatefromjpeg(__DIR__ . '/../uploads/' . $directory . '/' . $name);
-        imagecopyresampled($image_p, $image, $x, $y, $cropX, $cropY, $newWidth, $newHeight, $width, $height);
+        $thumbnailName = 'thumbnail' . $this->newWidth_p . 'x' . $this->newHeight_p . '_' . $name;
 
-        $thumbnailName = 'thumbnail' . $newWidth_p . 'x' . $newHeight_p . '_' . $name;
+        return array($newWidth_p, $newHeight_p, $thumbnailName);   
+    }
 
-        $thumbnailDirectory = Upload::createDirectory($thumbnailName);
+    public function createThumbnail($thumbnailDirectory, $thumbnailName) {
+        $image_p = imagecreatetruecolor($this->newWidth_p, $this->newHeight_p);
+        $image = imagecreatefromjpeg(__DIR__ . '/../uploads/' . $directory . '/' . $this->name);
+
+        imagecopyresampled($image_p, $image, $this->x, $this->y, $this->cropX, $this->cropY, $this->newWidth, $this->newHeight, $this->width, $this->height);
 
         imagejpeg($image_p, __DIR__ . '/../thumbnails/' . $thumbnailDirectory . '/' . $thumbnailName, 100);
-
-        $hash = Upload::generateHash("thumbnails/" . $thumbnailDirectory . '/' . $thumbnailName);
-
-        Database::addThumbnail($name, $thumbnailName, $hash, $newWidth_p, $newHeight_p, $thumbnailDirectory);
-        
-
-        /*$link = 'thumbnails/' . $thumbnailName;
-
-        return $link;*/
     }
 }
 ?>
